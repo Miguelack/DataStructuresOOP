@@ -20,17 +20,13 @@ protected:
         return node == NULL;
     }
 
-    /* cuenta los nodos del árbol n-ario de forma recursiva.
-     * Se recorre la lista de hijos (a partir del puntero izquierdo) y la cadena de hermanos (a través del puntero derecho).
-     */
+    /* cuenta los nodos del árbol n-ario de forma recursiva */
     int countNodes(NaryTreeNode<T>* node) const {
         if (!node) return 0;
         return 1 + countNodes(node->getLeft()) + countNodes(node->getRight());
     }
 
-    /* Clona recursivamente el subárbol a partir de un nodo.
-     * Se clona tanto la cadena de hijos como la de hermanos.
-     */
+    /* clona recursivamente el subárbol a partir de un nodo */
     static NaryTreeNode<T>* cloneTree(const NaryTreeNode<T>* currentRecNode) {
         if (!currentRecNode) return NULL;
         return new NaryTreeNode<T>(
@@ -40,21 +36,16 @@ protected:
         );
     }
 
-    /* Elimina recursivamente todos los nodos del subárbol indicado.
-     * Se recorren tanto la cadena de hijos (getLeft) como la de hermanos (getRight).
-     */
+    /* elimina recursivamente todos los nodos del subárbol indicado */
     void auxiliarClear(NaryTreeNode<T>* currentNode) {
         if (!currentNode) return;
-        // Se eliminan primero los hijos y luego los hermanos
         auxiliarClear(currentNode->getLeft());
         auxiliarClear(currentNode->getRight());
         delete currentNode;
         size = (size > 0) ? size - 1 : 0;
     }
 
-    /* Calcula la altura del árbol tomando la mayor profundidad entre todos los hijos.
-     * Se recorre la lista de hijos (con getLeft y getRight) para encontrar la máxima altura.
-     */
+    /* calcula la altura del árbol tomando la mayor profundidad entre todos los hijos */
     int auxiliarGetHeight(NaryTreeNode<T>* currentNode) const {
         if (!currentNode) return 0;
         int maxChildHeight = 0;
@@ -68,9 +59,7 @@ protected:
         return 1 + maxChildHeight;
     }
 
-    /* Cuenta las hojas del árbol.
-     * Un nodo se considera hoja si no tiene hijo (es decir, su puntero izquierdo es NULL).
-     */
+    /* cuenta las hojas del árbol */
     int auxiliarCountLeaves(NaryTreeNode<T>* currentNode) const {
         if (!currentNode) return 0;
         int count = 0;
@@ -82,7 +71,7 @@ protected:
         return count;
     }
 
-    /* Obtiene en una lista los valores de las hojas del árbol. */
+    /* obtiene en una lista los valores de las hojas del árbol */
     void auxiliarGetLeaves(NaryTreeNode<T>* currentNode, std::list<T>& leavesList) const {
         if (!currentNode) return;
         if (currentNode->getLeft() == NULL) {
@@ -93,9 +82,7 @@ protected:
         auxiliarGetLeaves(currentNode->getRight(), leavesList);
     }
 
-    /* Calcula el “peso” del árbol, es decir, la suma de todos los valores.
-     * Se asume que la suma tiene sentido para el tipo T.
-     */
+    /* calcula el peso del árbol (suma de todos los valores) */
     T auxiliarGetWeight(NaryTreeNode<T>* currentNode) const {
         if (!currentNode) return T();
         return currentNode->getData()
@@ -103,9 +90,9 @@ protected:
              + auxiliarGetWeight(currentNode->getRight());
     }
 
-    /* Busca de forma recursiva un subárbol dentro del árbol n-ario. */
+    /* busca un subárbol dentro del árbol n-ario */
     bool findSubTree(NaryTreeNode<T>* current, NaryTreeNode<T>* subRoot) const {
-        if (!subRoot) return true; // Un árbol vacío siempre está contenido.
+        if (!subRoot) return true;
         if (!current) return false;
         if (current->getData() == subRoot->getData()) {
             return findSubTree(current->getLeft(), subRoot->getLeft())
@@ -115,9 +102,7 @@ protected:
             || findSubTree(current->getRight(), subRoot);
     }
 
-    /* Inserta un subárbol en la posición indicada dentro de la lista de hijos de la raíz.
-     * Si asFirstChild es true, se inserta como el primer hijo; en caso contrario, como el último hijo.
-     */
+    /* inserta un subárbol en la posición indicada */
     void insertSubTreeHelper(NaryTreeNode<T>* rootNode, NaryTreeNode<T>* subTreeRoot, bool asFirstChild) {
         if (!subTreeRoot) return;
         NaryTreeNode<T>* clonedSubTree = cloneTree(subTreeRoot);
@@ -139,9 +124,7 @@ protected:
         size += subTreeSize;
     }
 
-    /* Elimina recursivamente un nodo (y su subárbol) que contenga el dato especificado.
-     * Se promueven los hijos, enlazándolos con el posible hermano del nodo eliminado.
-     */
+    /* elimina un nodo (y su subárbol) que contenga el dato especificado */
     NaryTreeNode<T>* auxiliarRemove(NaryTreeNode<T>* currentNode, const T& dataToDelete) {
         if (!currentNode) return NULL;
         if (currentNode->getData() == dataToDelete) {
@@ -167,36 +150,114 @@ protected:
         return currentNode;
     }
 
-    /* Recorre el árbol en forma de niveles y almacena los datos en una lista.
-     * Se recorre la estructura hijo-izquierdo / hermano-derecho.
-     */
+    /* recorre el árbol en forma de niveles y almacena los datos en una lista */
     std::list<T> levelOrderToList() const {
         std::list<T> dataList;
         if (isEmpty()) return dataList;
-        std::queue<NaryTreeNode<T>*> q;
-        q.push(root);
-        while(!q.empty()) {
-            NaryTreeNode<T>* current = q.front();
-            q.pop();
+        std::queue<NaryTreeNode<T>*> auxiliarQueue;
+        auxiliarQueue.push(root);
+        while(!auxiliarQueue.empty()) {
+            NaryTreeNode<T>* current = auxiliarQueue.front();
+            auxiliarQueue.pop();
             dataList.push_back(current->getData());
-            // Encolar todos los hijos del nodo actual
             NaryTreeNode<T>* child = current->getLeft();
             while(child) {
-                q.push(child);
+                auxiliarQueue.push(child);
                 child = child->getRight();
             }
         }
         return dataList;
     }
 
+    /* funcion auxiliar para encontrar un nodo en el arbol */
+    NaryTreeNode<T>* findNode(NaryTreeNode<T>* current, const T& data) const {
+        if(!current) return NULL;
+        if(current->getData() == data) return current;
+        
+        NaryTreeNode<T>* found = findNode(current->getLeft(), data);
+        if(found) return found;
+        
+        return findNode(current->getRight(), data);
+    }
+    
+    /* funcion auxiliar para encontrar el padre de un nodo */
+    NaryTreeNode<T>* findParent(NaryTreeNode<T>* current, const T& childData) const {
+        if(!current) return NULL;
+        
+        NaryTreeNode<T>* child = current->getLeft();
+        while(child) {
+            if(child->getData() == childData) {
+                return current;
+            }
+            child = child->getRight();
+        }
+        
+        NaryTreeNode<T>* parent = findParent(current->getLeft(), childData);
+        if(parent) return parent;
+        
+        return findParent(current->getRight(), childData);
+    }
+
+    /* construye el arbol a partir de listas inorden y preorden */
+    NaryTreeNode<T>* buildFromInPre(
+        typename std::list<T>::const_iterator& preIt,
+        typename std::list<T>::const_iterator preEnd,
+        typename std::list<T>::const_iterator inBegin,
+        typename std::list<T>::const_iterator inEnd) {
+        
+        if(preIt == preEnd || inBegin == inEnd) return NULL;
+        
+        T rootValue = *preIt++;
+        NaryTreeNode<T>* node = new NaryTreeNode<T>(rootValue);
+        
+        typename std::list<T>::const_iterator inRoot = std::find(inBegin, inEnd, rootValue);
+        if(inRoot == inEnd) return node;
+        
+        /* construye el primer hijo (left) */
+        node->setLeft(buildFromInPre(preIt, preEnd, inBegin, inRoot));
+        
+        /* construye los hermanos (right) */
+        typename std::list<T>::const_iterator nextInRoot = inRoot;
+        ++nextInRoot;
+        node->setRight(buildFromInPre(preIt, preEnd, nextInRoot, inEnd));
+        
+        return node;
+    }
+
+    /* construye el arbol a partir de listas inorden y postorden */
+    NaryTreeNode<T>* buildFromInPost(
+        typename std::list<T>::const_iterator& postIt,
+        typename std::list<T>::const_iterator postEnd,
+        typename std::list<T>::const_iterator inBegin,
+        typename std::list<T>::const_iterator inEnd) {
+        
+        if(postIt == postEnd || inBegin == inEnd) return NULL;
+        
+        T rootValue = *(--postIt);
+        NaryTreeNode<T>* node = new NaryTreeNode<T>(rootValue);
+        
+        typename std::list<T>::const_iterator inRoot = std::find(inBegin, inEnd, rootValue);
+        if(inRoot == inEnd) return node;
+        
+        /* construye los hermanos primero (right) */
+        typename std::list<T>::const_iterator nextInRoot = inRoot;
+        ++nextInRoot;
+        node->setRight(buildFromInPost(postIt, postEnd, nextInRoot, inEnd));
+        
+        /* luego construye el primer hijo (left) */
+        node->setLeft(buildFromInPost(postIt, postEnd, inBegin, inRoot));
+        
+        return node;
+    }
+
 public:
-    /* Constructor por defecto */
+    /* constructor por defecto */
     NaryTree() : root(NULL), size(0) {}
 
-    /* Constructor con valor inicial en la raíz */
+    /* constructor con valor inicial en la raíz */
     NaryTree(const T& rootData) : root(new NaryTreeNode<T>(rootData)), size(1) {}
 
-    /* Constructor copia */
+    /* constructor copia */
     NaryTree(const NaryTree<T>& originalTree) : root(NULL), size(0) {
         if (!originalTree.isEmpty()) {
             root = cloneTree(originalTree.root);
@@ -204,12 +265,30 @@ public:
         }
     }
 
-    /* Destructor */
+    /* constructor desde inorden y preorden */
+    NaryTree(const std::list<T>& inOrder, const std::list<T>& preOrder) : root(NULL), size(0) {
+        if(inOrder.size() != preOrder.size() || inOrder.empty()) return;
+        
+        typename std::list<T>::const_iterator preIt = preOrder.begin();
+        root = buildFromInPre(preIt, preOrder.end(), inOrder.begin(), inOrder.end());
+        size = countNodes(root);
+    }
+
+    /* constructor desde inorden y postorden */
+    NaryTree(const std::list<T>& inOrder, const std::list<T>& postOrder, bool) : root(NULL), size(0) {
+        if(inOrder.size() != postOrder.size() || inOrder.empty()) return;
+        
+        typename std::list<T>::const_iterator postIt = postOrder.end();
+        root = buildFromInPost(postIt, postOrder.begin(), inOrder.begin(), inOrder.end());
+        size = countNodes(root);
+    }
+
+    /* destructor */
     ~NaryTree() {
         clear();
     }
 
-    /* Operador de asignación */
+    /* operador de asignación */
     NaryTree<T>& operator=(const NaryTree<T>& originalTree) {
         if (this != &originalTree) {
             clear();
@@ -221,23 +300,18 @@ public:
         return *this;
     }
 
-    /* Obtiene el dato de la raíz.
-     * Si el árbol está vacío se retorna el valor por defecto de T.
-     */
+    /* obtiene el dato de la raíz */
     T getRoot() const {
         if (isEmpty()) return T();
         return root->getData();
     }
 
-    /* Retorna la cantidad de nodos en el árbol */
+    /* retorna la cantidad de nodos en el árbol */
     int getSize() const {
         return size;
     }
 
-    /* Inserta un subárbol completo en la raíz.
-     * El parámetro asFirstChild indica si se inserta como primer hijo (true) o
-     * como último hijo (false). Si el árbol original está vacío, la raíz se clona.
-     */
+    /* inserta un subárbol completo en la raíz */
     void insertSubTree(const NaryTree<T>& subTree, bool asFirstChild) {
         if (subTree.isEmpty()) return;
         if (isEmpty()) {
@@ -248,82 +322,129 @@ public:
         insertSubTreeHelper(root, subTree.root, asFirstChild);
     }
 
-    /* Elimina, a partir del dato, el nodo (y su subárbol) que coincida. */
+    /* elimina un nodo (y su subárbol) que coincida */
     void remove(const T& data) {
         root = auxiliarRemove(root, data);
     }
 
-    /* Elimina todos los nodos del árbol. */
+    /* elimina todos los nodos del árbol */
     void clear() {
         auxiliarClear(root);
         root = NULL;
         size = 0;
     }
 
-    /* Retorna la altura del árbol.
-     * La altura se define como la mayor cantidad de nodos en alguna rama.
-     */
+    /* retorna la altura del árbol */
     int getHeight() const {
         return auxiliarGetHeight(root);
     }
 
-    /* Retorna la cantidad de hojas en el árbol. */
+    /* retorna la cantidad de hojas en el árbol */
     int countLeaves() const {
         return auxiliarCountLeaves(root);
     }
 
-    /* Retorna una lista con los datos almacenados en las hojas del árbol. */
+    /* retorna una lista con los datos de las hojas */
     std::list<T> getLeaves() const {
         std::list<T> leavesList;
         auxiliarGetLeaves(root, leavesList);
         return leavesList;
     }
 
-    /* Calcula la suma de todos los valores del árbol.
-     * Se asume que para T es válida la operación de suma.
-     */
+    /* calcula la suma de todos los valores del árbol */
     T getWeight() const {
         return auxiliarGetWeight(root);
     }
 
-    /* Verifica si el árbol contiene un valor determinado.
-     * Se recorre el árbol en forma de niveles utilizando la representación hijo-izquierdo / hermano-derecho.
-     */
+    /* verifica si el árbol contiene un valor determinado */
     bool contains(const T& data) const {
         if (isEmpty()) return false;
-        std::queue<NaryTreeNode<T>*> q;
-        q.push(root);
-        while (!q.empty()) {
-            NaryTreeNode<T>* current = q.front();
-            q.pop();
+        std::queue<NaryTreeNode<T>*> auxiliarQueue;
+        auxiliarQueue.push(root);
+        while (!auxiliarQueue.empty()) {
+            NaryTreeNode<T>* current = auxiliarQueue.front();
+            auxiliarQueue.pop();
             if (current->getData() == data)
                 return true;
             NaryTreeNode<T>* child = current->getLeft();
             while (child) {
-                q.push(child);
+                auxiliarQueue.push(child);
                 child = child->getRight();
             }
         }
         return false;
     }
 
-    /* Verifica si el árbol contiene (como subárbol) a otro árbol. */
+    /* verifica si el árbol contiene un subárbol */
     bool containsSubTree(const NaryTree<T>& subTree) const {
         if (subTree.isEmpty()) return true;
         if (isEmpty()) return false;
         return findSubTree(root, subTree.root);
     }
 
-    /* Retorna en una lista todos los datos contenidos en el árbol, en orden de niveles.
-     * Esta función reemplaza el recorrido que utilizaba apuntadores a funciones.
-     */
+    /* retorna una lista con todos los datos en orden de niveles */
     std::list<T> getDataList() const {
         return levelOrderToList();
     }
 
-    /* Verifica si el árbol está vacío */
+    /* verifica si el árbol está vacío */
     bool isEmpty() const {
         return root == NULL;
+    }
+
+    /* obtiene todos los hermanos de un nodo dado */
+    std::list<NaryTree<T> > getSiblings(const T& nodeData) const {
+        std::list<NaryTree<T> > siblingsList;
+        
+        if(isEmpty()) return siblingsList;
+        
+        if(root->getData() == nodeData) {
+            siblingsList.push_back(*this);
+            return siblingsList;
+        }
+        
+        NaryTreeNode<T>* parent = findParent(root, nodeData);
+        
+        if(!parent) return siblingsList;
+        
+        NaryTreeNode<T>* currentSibling = parent->getLeft();
+        
+        while(currentSibling) {
+            NaryTree<T> siblingTree;
+            siblingTree.root = cloneTree(currentSibling);
+            siblingTree.size = countNodes(siblingTree.root);
+            siblingsList.push_back(siblingTree);
+            
+            currentSibling = currentSibling->getRight();
+        }
+        
+        return siblingsList;
+    }
+
+    /* obtiene todos los hijos directos de un nodo dado */
+    std::list<NaryTree<T> > getChildren(const T& nodeData) const {
+        std::list<NaryTree<T> > childrenList;
+        
+        if(isEmpty()) return childrenList;
+        
+        NaryTreeNode<T>* node = findNode(root, nodeData);
+        if(!node) return childrenList;
+        
+        NaryTreeNode<T>* firstChild = node->getLeft();
+        
+        if(firstChild) {
+            NaryTreeNode<T>* child = firstChild;
+            while(child) {
+                NaryTree<T> childTree;
+                childTree.root = cloneTree(child);
+                childTree.size = countNodes(childTree.root);
+                childrenList.push_back(childTree);
+                
+                child = child->getRight();
+            }
+        }
+        
+        return childrenList;
     }
 };
 
